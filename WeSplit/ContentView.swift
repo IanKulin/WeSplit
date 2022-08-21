@@ -8,18 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var checkAmount = 0.0
+    @State private var billAmount = 0.0
     @State private var numberOfPeople = 2
     @State private var tipPercentage = 20
     @FocusState private var amountIsFocused: Bool
     
-    let tipPercentages = [0,10,15,20,25]
+    let currencyCode: FloatingPointFormatStyle<Double>.Currency = .currency(code: Locale.current.currencyCode ?? "USD")
+    
+    var grandTotal: Double {
+        let tipSelection = Double(tipPercentage)
+        let tipValue = billAmount / 100 * tipSelection
+        return billAmount + tipValue
+    }
     
     var totalperperson: Double {
         let peopleCount = Double (numberOfPeople + 2)
-        let tipSelection = Double(tipPercentage)
-        let tipValue = checkAmount / 100 * tipSelection
-        let grandTotal = checkAmount + tipValue
         let amountPerPerson = grandTotal / peopleCount
         return amountPerPerson
     }
@@ -28,8 +31,8 @@ struct ContentView: View {
         NavigationView {
             Form {
                 Section {
-                    TextField("Amount", value: $checkAmount,
-                              format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                    TextField("Amount", value: $billAmount,
+                              format: currencyCode)
                         .keyboardType(.decimalPad)
                         .focused($amountIsFocused)
                     
@@ -40,19 +43,31 @@ struct ContentView: View {
                     }
                     
                 }
+                
                 Section {
-                    Picker( "Tip percent", selection: $tipPercentage) {
-                        ForEach(tipPercentages, id: \.self) {
+                    Picker("", selection: $tipPercentage) {
+                        ForEach(0..<101, id: \.self) {
                             Text($0, format: .percent)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    //.pickerStyle(.wheel)
                 }
                 header: {
                     Text("Tip")
                 }
+                
+                Section {
+                    Text(grandTotal, format: currencyCode)
+                }
+                header: {
+                    Text("Total BILL")
+                }
+                
                 Section {
                     Text(totalperperson, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+                }
+                header: {
+                    Text("Amount per person")
                 }
             }
             .navigationTitle("WeSplit")
